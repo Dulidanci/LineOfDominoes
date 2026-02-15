@@ -6,77 +6,91 @@ filter: Nearest, Nearest
 repeat: none
 domino
   rotate: false
-  xy: 2, 2
+  xy: 2, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
 domino
   rotate: false
-  xy: 36, 2
+  xy: 36, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 1
 domino
   rotate: false
-  xy: 70, 2
+  xy: 70, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 2
 domino
   rotate: false
-  xy: 104, 2
+  xy: 104, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 3
 domino
   rotate: false
-  xy: 138, 2
+  xy: 138, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 4
 domino
   rotate: false
-  xy: 172, 2
+  xy: 172, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 5
 domino
   rotate: false
-  xy: 206, 2
+  xy: 206, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 6
 domino
   rotate: false
-  xy: 240, 2
+  xy: 240, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 7
 domino
   rotate: false
-  xy: 274, 2
+  xy: 274, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 8
 domino
   rotate: false
-  xy: 308, 2
+  xy: 308, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 9
+domino_9_d
+  rotate: false
+  xy: 2, 2
+  size: 24, 24
+  orig: 24, 24
+  offset: 0, 0
+  index: -1
+domino_9_u
+  rotate: false
+  xy: 376, 36
+  size: 24, 24
+  orig: 24, 24
+  offset: 0, 0
+  index: -1
 path_marker
   rotate: false
-  xy: 342, 2
+  xy: 342, 28
   size: 32, 32
   orig: 32, 32
   offset: 0, 0

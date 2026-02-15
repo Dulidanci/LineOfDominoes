@@ -1,13 +1,18 @@
-package io.github.dulidanci.lineofdominoes.render;
+package io.github.dulidanci.lineofdominoes.render.renderers;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.level.movement.Position;
+import io.github.dulidanci.lineofdominoes.render.RenderContext;
+import io.github.dulidanci.lineofdominoes.render.RenderSystem;
+import io.github.dulidanci.lineofdominoes.screen.widget.DominoWidget;
+import io.github.dulidanci.lineofdominoes.screen.widget.Widget;
 import io.github.dulidanci.lineofdominoes.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class DominoRenderer {
     private final RenderSystem renderSystem;
@@ -36,14 +41,19 @@ public class DominoRenderer {
 
         }
 
-        ArrayList<Pair<Domino, Domino>> inventory = renderContext.inventory.getInventory();
-        for (int i = 0; i < inventory.size(); i++) {
-            renderSystem.batch().draw(atlas.findRegion("domino", inventory.get(i).getFirst().getSide().ordinal()),
-                i * 2 + 0.5f, 0.5f, 0.5f, 0.5f,
-                1, 1, 1, 1, inventory.get(i).getFirst().getDirection().getTurnDegrees());
-            renderSystem.batch().draw(atlas.findRegion("domino", inventory.get(i).getSecond().getSide().ordinal()),
-                i * 2 + 0.5f, 1.5f, 0.5f, 0.5f,
-                1, 1, 1, 1, inventory.get(i).getSecond().getDirection().getTurnDegrees());
+        ArrayList<Widget> widgets = renderContext.uiManager.getWidgetList();
+        widgets.sort(Comparator.comparing(widget -> widget.layer.ordinal()));
+        for (Widget widget : widgets) {
+            if (widget instanceof DominoWidget dominoWidget) {
+                renderSystem.batch().draw(atlas.findRegion("domino", dominoWidget.sides.getFirst().ordinal()),
+                    dominoWidget.x, dominoWidget.y, 0.5f, 0.5f,
+                    1, 1, 1, 1, Direction.UP.getTurnDegrees());
+                renderSystem.batch().draw(atlas.findRegion("domino", dominoWidget.sides.getSecond().ordinal()),
+                    dominoWidget.x, dominoWidget.y + 1, 0.5f, 0.5f,
+                    1, 1, 1, 1, Direction.DOWN.getTurnDegrees());
+            }
+
+            // todo: non-Domino widgets are not being rendered!!!!!!
         }
     }
 }

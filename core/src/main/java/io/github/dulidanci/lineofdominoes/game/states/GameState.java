@@ -1,14 +1,13 @@
 package io.github.dulidanci.lineofdominoes.game.states;
 
-public abstract class GameState {
-    protected final GameStateManager gsm;
+import io.github.dulidanci.lineofdominoes.input.InputSystem;
 
-    protected GameState(GameStateManager gsm) {
-        this.gsm = gsm;
-    }
-
-    public abstract void enter();
-    public abstract void update(float delta);
-    public abstract void exit();
-    public abstract void dispose();
+public interface GameState {
+    void enter();
+    void update(float delta, InputSystem inputSystem);
+    void pause();
+    void resume();
+    void exit();
+    void dispose();
+    void resize(int width, int height);
 }

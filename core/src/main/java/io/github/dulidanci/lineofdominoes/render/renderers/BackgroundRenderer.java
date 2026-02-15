@@ -1,7 +1,9 @@
-package io.github.dulidanci.lineofdominoes.render;
+package io.github.dulidanci.lineofdominoes.render.renderers;
 
 import com.badlogic.gdx.graphics.Texture;
 import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
+import io.github.dulidanci.lineofdominoes.render.RenderContext;
+import io.github.dulidanci.lineofdominoes.render.RenderSystem;
 
 public class BackgroundRenderer {
     private final RenderSystem renderSystem;
