@@ -42,14 +42,14 @@ public class DominoRenderer {
         }
 
         ArrayList<Widget> widgets = renderContext.uiManager.getWidgetList();
-        widgets.sort(Comparator.comparing(widget -> widget.layer.ordinal()));
+        widgets.sort(Comparator.comparing(widget -> widget.getLayer().ordinal()));
         for (Widget widget : widgets) {
             if (widget instanceof DominoWidget dominoWidget) {
-                renderSystem.batch().draw(atlas.findRegion("domino", dominoWidget.sides.getFirst().ordinal()),
-                    dominoWidget.x, dominoWidget.y, 0.5f, 0.5f,
+                renderSystem.batch().draw(atlas.findRegion("domino", dominoWidget.getSides().getFirst().ordinal()),
+                    dominoWidget.getX(), dominoWidget.getY(), 0.5f, 0.5f,
                     1, 1, 1, 1, Direction.UP.getTurnDegrees());
-                renderSystem.batch().draw(atlas.findRegion("domino", dominoWidget.sides.getSecond().ordinal()),
-                    dominoWidget.x, dominoWidget.y + 1, 0.5f, 0.5f,
+                renderSystem.batch().draw(atlas.findRegion("domino", dominoWidget.getSides().getSecond().ordinal()),
+                    dominoWidget.getX(), dominoWidget.getY() + 1, 0.5f, 0.5f,
                     1, 1, 1, 1, Direction.DOWN.getTurnDegrees());
             }
 

@@ -6,22 +6,21 @@ import io.github.dulidanci.lineofdominoes.screen.Layer;
 
 import java.util.function.Consumer;
 
-public class Widget {
-    public float x;
-    public float y;
-    public float width;
-    public float height;
-    public boolean hovered;
-    public boolean pressed;
-    public boolean held;
-    public boolean released;
-    public boolean disabled;
-    public final Layer layer;
-    protected String text;
-    protected Consumer<Widget> onPress;
-    protected Consumer<Widget> onRelease;
+public abstract class Widget {
+    protected float x;
+    protected float y;
+    protected final float width;
+    protected final float height;
+    protected final Layer layer;
+    protected final Consumer<Widget> onPress;
+    protected final Consumer<Widget> onRelease;
+    protected boolean disabled;
+    protected boolean hovered;
+    protected boolean pressed;
+    protected boolean held;
+    protected boolean released;
 
-    protected Widget(Builder builder) {
+    protected Widget(Builder<?> builder) {
         this.x = builder.x;
         this.y = builder.y;
         this.width = builder.width;
@@ -32,21 +31,35 @@ public class Widget {
         this.released = false;
         this.disabled = builder.disabled;
         this.layer = builder.layer;
-        this.text = builder.text;
         this.onPress = builder.onPress;
         this.onRelease = builder.onRelease;
     }
 
-    public void update(float delta, InputSystem inputSystem) {
+    public void update(float delta) {
+    }
+
+    public void handleInput(float delta, InputSystem inputSystem) {
         if (this.disabled) return;
 
-        this.hovered = this.contains(inputSystem.getMouse().worldX, inputSystem.getMouse().worldY);
+        float mouseX = inputSystem.getMouse().worldX;
+        float mouseY = inputSystem.getMouse().worldY;
+
+        this.hovered = this.contains(mouseX, mouseY);
         this.pressed = this.hovered && inputSystem.getMouse().leftJustPressed;
         this.released = this.held && inputSystem.getMouse().leftJustReleased;
-        this.held = this.pressed || this.held && inputSystem.getMouse().leftPressed;
+        this.held = (this.pressed || this.held) && inputSystem.getMouse().leftPressed;
 
-        if (this.pressed) onPress.accept(this);
-        if (this.released) onRelease.accept(this);
+        if (this.pressed && this.onPress != null) {
+            this.onPress.accept(this);
+        }
+
+        if (this.held) {
+            this.move(new Vector2(inputSystem.getMouse().deltaWorldX, inputSystem.getMouse().deltaWorldY));
+        }
+
+        if (this.released && this.onRelease != null) {
+            this.onRelease.accept(this);
+        }
     }
 
     public boolean contains(float mouseX, float mouseY) {
@@ -58,64 +71,69 @@ public class Widget {
         this.y += vector.y;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public float getX() {
+        return x;
     }
 
-    public static class Builder {
+    public float getY() {
+        return y;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public Layer getLayer() {
+        return layer;
+    }
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public abstract static class Builder<T extends Builder<T>> {
         private float x = 0;
         private float y = 0;
-        private float width = 0;
-        private float height = 0;
+        private final float width;
+        private final float height;
         private boolean disabled = false;
-        private Layer layer = Layer.BACKGROUND;
-        private String text = "";
+        private final Layer layer;
         private Consumer<Widget> onPress;
         private Consumer<Widget> onRelease;
 
-        public Builder width(float width) {
+        protected Builder(float width, float height, Layer layer) {
             this.width = width;
-            return this;
-        }
-
-        public Builder height(float height) {
             this.height = height;
-            return this;
+            this.layer = layer;
         }
 
-        public Builder position(float x, float y) {
+        protected abstract T self();
+
+        public T position(float x, float y) {
             this.x = x;
             this.y = y;
-            return this;
+            return self();
         }
 
-        public Builder disabled(boolean disabled) {
+        public T disabled(boolean disabled) {
             this.disabled = disabled;
-            return this;
+            return self();
         }
 
-        public Builder layer(Layer layer) {
-            this.layer = layer;
-            return this;
-        }
-
-        public Builder text(String text) {
-            this.text = text;
-            return this;
-        }
-
-        public Builder onPress(Consumer<Widget> onPress) {
+        public T onPress(Consumer<Widget> onPress) {
             this.onPress = onPress;
-            return this;
+            return self();
         }
 
-        public Builder onRelease(Consumer<Widget> onRelease) {
+        public T onRelease(Consumer<Widget> onRelease) {
             this.onRelease = onRelease;
-            return this;
+            return self();
         }
 
-        public Widget build() {
-            return new Widget(this);
-        }
+        public abstract Widget build();
     }
 }

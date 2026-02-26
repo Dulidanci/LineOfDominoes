@@ -5,22 +5,16 @@ import io.github.dulidanci.lineofdominoes.screen.widget.DominoWidget;
 import io.github.dulidanci.lineofdominoes.screen.widget.Widget;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class UIManager {
-    private final List<Widget> screenElements = new ArrayList<>();
-    private final List<DominoWidget> dominoWidgets = new ArrayList<>();
-
-    public void addElement(Widget widget) {
-        screenElements.add(widget);
-    }
+    private final List<Widget> dominoWidgets = new ArrayList<>();
+    private final List<Widget> hoveredWidgets = new ArrayList<>();
+    private Widget capturedWidget;
 
     public void addDomino(DominoWidget widget) {
         dominoWidgets.add(widget);
-    }
-
-    public void removeElement(Widget widget) {
-        screenElements.remove(widget);
     }
 
     public void removeDomino(DominoWidget widget) {
@@ -28,23 +22,45 @@ public class UIManager {
     }
 
     public void clear() {
-        screenElements.clear();
         dominoWidgets.clear();
     }
 
     public void update(float delta, InputSystem inputSystem) {
-        for (Widget widget : screenElements) {
-            widget.update(delta, inputSystem);
+        for (Widget widget : dominoWidgets) {
+            widget.update(delta);
         }
-        for (DominoWidget dominoWidget : dominoWidgets) {
-            dominoWidget.update(delta, inputSystem);
+
+        if (capturedWidget != null) {
+            capturedWidget.handleInput(delta, inputSystem);
+
+            if (inputSystem.getMouse().leftJustReleased) {
+                capturedWidget = null;
+            }
+
+            return;
+        }
+
+        hoveredWidgets.clear();
+
+        dominoWidgets.forEach(widget -> {
+            if (widget.contains(inputSystem.getMouse().worldX, inputSystem.getMouse().worldY) && !widget.isDisabled()) {
+                hoveredWidgets.add(widget);
+            }
+        });
+
+        hoveredWidgets.sort(Comparator.comparing(widget -> widget.getLayer().ordinal()));
+
+        if (!hoveredWidgets.isEmpty()) {
+            hoveredWidgets.get(0).handleInput(delta, inputSystem);
+
+            if (inputSystem.getMouse().leftJustPressed) {
+                capturedWidget = hoveredWidgets.get(0);
+            }
         }
     }
 
     public ArrayList<Widget> getWidgetList() {
-        ArrayList<Widget> widgetList = new ArrayList<>(screenElements);
-        widgetList.addAll(dominoWidgets);
-        return widgetList;
+        return new ArrayList<>(dominoWidgets);
     }
 
     public void dispose() {

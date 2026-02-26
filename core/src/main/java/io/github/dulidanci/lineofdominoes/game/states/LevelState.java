@@ -27,7 +27,6 @@ public class LevelState implements GameState {
     private final UIManager uiManager;
     private Level level;
     private boolean paused;
-    private DominoWidget dragged;
 
 
     public LevelState() {
@@ -42,12 +41,8 @@ public class LevelState implements GameState {
             @Override
             public void onDominoAdded(Pair<DominoSide, DominoSide> pair, int index) {
                 System.out.println("received on domino added event");
-                DominoWidget dominoWidget = (DominoWidget) DominoWidget.builder()
-                    .sides(pair)
-                    .height(2)
-                    .width(1)
+                DominoWidget dominoWidget = new DominoWidget.Builder(1, 2, Layer.INVENTORY, pair)
                     .position(index * 2 + 0.5f, 0.5f)
-                    .layer(Layer.INVENTORY)
                     .onPress(LevelState.this::onPress)
                     .onRelease(LevelState.this::onRelease)
                     .build();
@@ -69,7 +64,6 @@ public class LevelState implements GameState {
         this.level = generator.generateLevel((int) (Math.random() * LineOfDominoes.HEIGHT));
         this.inventory.clear();
         this.paused = false;
-        this.dragged = null;
     }
 
     @Override
@@ -87,9 +81,6 @@ public class LevelState implements GameState {
 
         inventory.update();
         uiManager.update(delta, inputSystem);
-        if (dragged != null) {
-            dragged.move(new Vector2(inputSystem.getMouse().deltaWorldX, inputSystem.getMouse().deltaWorldY));
-        }
 
         renderContext.fromLevelState(this);
     }
@@ -122,14 +113,10 @@ public class LevelState implements GameState {
 
     public void onPress(Widget widget) {
         System.out.println("LevelState::onPress");
-        if (this.dragged == null && widget instanceof DominoWidget dominoWidget) {
-            this.dragged = dominoWidget;
-        }
     }
 
     public void onRelease(Widget widget) {
         System.out.println("LevelState::onRelease");
-        this.dragged = null;
     }
 
     public Level getLevel() {
