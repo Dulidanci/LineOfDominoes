@@ -1,8 +1,10 @@
 package io.github.dulidanci.lineofdominoes.level;
 
+import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
 import io.github.dulidanci.lineofdominoes.domino.DominoSide;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
+import io.github.dulidanci.lineofdominoes.render.DrawContext;
 import io.github.dulidanci.lineofdominoes.util.Pair;
 import io.github.dulidanci.lineofdominoes.level.movement.Position;
 
@@ -21,6 +23,18 @@ public class Level {
         this.height = builder.height;
         this.path = builder.path;
         this.dominoes = builder.dominoes;
+    }
+
+    public void render(float delta, DrawContext drawContext) {
+        path.forEach(pair -> drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
+            pair.getFirst().x() * 32, (pair.getFirst().y() + 3) * 32,
+            16,  16, 32, 32, 1, 1, pair.getSecond().getTurnDegrees()));
+
+        for (Map.Entry<Position, Domino> entry : this.dominoes.entrySet()) {
+            drawContext.draw(AssetsLoader.getAtlas().findRegion("domino", entry.getValue().getSide().ordinal()),
+                entry.getKey().x() * 32, (entry.getKey().y() + 3) * 32,
+                16, 16, 32, 32, 1, 1, entry.getValue().getDirection().getTurnDegrees());
+        }
     }
 
     public void addDomino(Position position, Direction direction, DominoSide first, DominoSide second) {

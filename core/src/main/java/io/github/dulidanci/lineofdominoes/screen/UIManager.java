@@ -1,6 +1,7 @@
 package io.github.dulidanci.lineofdominoes.screen;
 
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
+import io.github.dulidanci.lineofdominoes.render.DrawContext;
 import io.github.dulidanci.lineofdominoes.screen.widget.DominoWidget;
 import io.github.dulidanci.lineofdominoes.screen.widget.Widget;
 
@@ -9,7 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class UIManager {
-    private final List<Widget> dominoWidgets = new ArrayList<>();
+    private final List<DominoWidget> dominoWidgets = new ArrayList<>();
     private final List<Widget> hoveredWidgets = new ArrayList<>();
     private Widget capturedWidget;
 
@@ -59,8 +60,8 @@ public class UIManager {
         }
     }
 
-    public ArrayList<Widget> getWidgetList() {
-        return new ArrayList<>(dominoWidgets);
+    public void render(float delta, DrawContext drawContext) {
+        dominoWidgets.forEach(widget -> widget.render(delta, drawContext));
     }
 
     public void dispose() {

@@ -2,7 +2,8 @@ package io.github.dulidanci.lineofdominoes.screen.widget;
 
 import com.badlogic.gdx.math.Vector2;
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
-import io.github.dulidanci.lineofdominoes.screen.Layer;
+import io.github.dulidanci.lineofdominoes.render.DrawContext;
+import io.github.dulidanci.lineofdominoes.render.RenderLayer;
 
 import java.util.function.Consumer;
 
@@ -11,7 +12,7 @@ public abstract class Widget {
     protected float y;
     protected final float width;
     protected final float height;
-    protected final Layer layer;
+    protected final RenderLayer layer;
     protected final Consumer<Widget> onPress;
     protected final Consumer<Widget> onRelease;
     protected boolean disabled;
@@ -36,6 +37,10 @@ public abstract class Widget {
     }
 
     public void update(float delta) {
+    }
+
+    public void render(float delta, DrawContext drawContext) {
+
     }
 
     public void handleInput(float delta, InputSystem inputSystem) {
@@ -87,7 +92,7 @@ public abstract class Widget {
         return width;
     }
 
-    public Layer getLayer() {
+    public RenderLayer getLayer() {
         return layer;
     }
 
@@ -101,11 +106,11 @@ public abstract class Widget {
         private final float width;
         private final float height;
         private boolean disabled = false;
-        private final Layer layer;
+        private final RenderLayer layer;
         private Consumer<Widget> onPress;
         private Consumer<Widget> onRelease;
 
-        protected Builder(float width, float height, Layer layer) {
+        protected Builder(float width, float height, RenderLayer layer) {
             this.width = width;
             this.height = height;
             this.layer = layer;

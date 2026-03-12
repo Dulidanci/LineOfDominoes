@@ -4,6 +4,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
 import io.github.dulidanci.lineofdominoes.domino.DominoSide;
 import io.github.dulidanci.lineofdominoes.events.InventoryListener;
 import io.github.dulidanci.lineofdominoes.game.LineOfDominoes;
@@ -11,8 +13,8 @@ import io.github.dulidanci.lineofdominoes.input.InputSystem;
 import io.github.dulidanci.lineofdominoes.level.Level;
 import io.github.dulidanci.lineofdominoes.level.generator.LevelGenerator;
 import io.github.dulidanci.lineofdominoes.level.inventory.Inventory;
-import io.github.dulidanci.lineofdominoes.render.RenderContext;
-import io.github.dulidanci.lineofdominoes.screen.Layer;
+import io.github.dulidanci.lineofdominoes.render.DrawContext;
+import io.github.dulidanci.lineofdominoes.render.RenderLayer;
 import io.github.dulidanci.lineofdominoes.screen.UIManager;
 import io.github.dulidanci.lineofdominoes.screen.widget.DominoWidget;
 import io.github.dulidanci.lineofdominoes.screen.widget.Widget;
@@ -20,7 +22,6 @@ import io.github.dulidanci.lineofdominoes.util.Pair;
 
 public class LevelState implements GameState {
     private final FitViewport viewport;
-    private final RenderContext renderContext;
     private final Vector3 mouse = new Vector3();
     private final LevelGenerator generator;
     private final Inventory inventory;
@@ -34,15 +35,14 @@ public class LevelState implements GameState {
         this.inventory = new Inventory(10);
         this.uiManager = new UIManager();
 
-        this.viewport = new FitViewport(LineOfDominoes.WIDTH, LineOfDominoes.HEIGHT + 3);
-        this.renderContext = new RenderContext(viewport).fromLevelState(this);
+        this.viewport = new FitViewport(640, 480);
 
         this.inventory.setListener(new InventoryListener() {
             @Override
             public void onDominoAdded(Pair<DominoSide, DominoSide> pair, int index) {
                 System.out.println("received on domino added event");
-                DominoWidget dominoWidget = new DominoWidget.Builder(1, 2, Layer.INVENTORY, pair)
-                    .position(index * 2 + 0.5f, 0.5f)
+                DominoWidget dominoWidget = new DominoWidget.Builder(32, 64, RenderLayer.INVENTORY, pair)
+                    .position(index * 64 + 16, 16)
                     .onPress(LevelState.this::onPress)
                     .onRelease(LevelState.this::onRelease)
                     .build();
@@ -82,7 +82,20 @@ public class LevelState implements GameState {
         inventory.update();
         uiManager.update(delta, inputSystem);
 
-        renderContext.fromLevelState(this);
+        // todo: remove this
+        if (inputSystem.getMouse().leftJustPressed) {
+            System.out.println("Mouse at screen (" + inputSystem.getMouse().x + ", " + inputSystem.getMouse().y + ")," +
+                " world " + inputSystem.getMouse().worldX + ", " + inputSystem.getMouse().worldY + ")");
+        }
+    }
+
+    @Override
+    public void render(float delta, DrawContext drawContext) {
+        drawContext.draw(AssetsLoader.getSunset(), 0, 0, 640, 480);
+
+        level.render(delta, drawContext);
+
+        uiManager.render(delta, drawContext);
     }
 
     @Override
@@ -119,19 +132,7 @@ public class LevelState implements GameState {
         System.out.println("LevelState::onRelease");
     }
 
-    public Level getLevel() {
-        return level;
-    }
-
-    public Inventory getInventory() {
-        return inventory;
-    }
-
-    public UIManager getUiManager() {
-        return uiManager;
-    }
-
-    public RenderContext getRenderContext() {
-        return renderContext;
+    public Viewport getViewport() {
+        return viewport;
     }
 }

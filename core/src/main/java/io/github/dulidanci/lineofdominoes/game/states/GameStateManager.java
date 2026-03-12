@@ -1,7 +1,6 @@
 package io.github.dulidanci.lineofdominoes.game.states;
 
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
-import io.github.dulidanci.lineofdominoes.render.RenderContext;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -54,12 +53,8 @@ public class GameStateManager {
         return stateStack.peek();
     }
 
-    public RenderContext getRenderContext() {
-        GameState top = stateStack.peek();
-        if (top instanceof LevelState levelState) {
-            return levelState.getRenderContext();
-        }
-        return null;
+    public GameState[] getAllStates() {
+        return stateStack.toArray(new GameState[0]);
     }
 
     public void disposeAll() {

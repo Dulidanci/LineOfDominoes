@@ -34,7 +34,7 @@ public class LineOfDominoes extends Game {
 
         inputSystem.update();
         gsm.update(delta, inputSystem);
-        renderSystem.render(gsm.getRenderContext());
+        renderSystem.render(delta, gsm.getAllStates());
 
         super.render();
     }
@@ -42,6 +42,7 @@ public class LineOfDominoes extends Game {
     @Override
     public void resize(int width, int height) {
         gsm.getCurrentState().resize(width, height);
+        renderSystem.resize(width, height);
     }
 
     @Override

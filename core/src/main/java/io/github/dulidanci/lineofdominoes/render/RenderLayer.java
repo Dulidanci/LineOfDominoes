@@ -1,6 +1,6 @@
-package io.github.dulidanci.lineofdominoes.screen;
+package io.github.dulidanci.lineofdominoes.render;
 
-public enum Layer {
+public enum RenderLayer {
     BACKGROUND,
     OVER_BACKGROUND,
     LEVEL,
