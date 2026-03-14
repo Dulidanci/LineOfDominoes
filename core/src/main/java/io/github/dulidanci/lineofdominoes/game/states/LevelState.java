@@ -35,14 +35,14 @@ public class LevelState implements GameState {
         this.inventory = new Inventory(10);
         this.uiManager = new UIManager();
 
-        this.viewport = new FitViewport(640, 480);
+        this.viewport = new FitViewport(LineOfDominoes.WIDTH * LineOfDominoes.PIXEL_DENSITY, (LineOfDominoes.HEIGHT + 3) * LineOfDominoes.PIXEL_DENSITY);
 
         this.inventory.setListener(new InventoryListener() {
             @Override
             public void onDominoAdded(Pair<DominoSide, DominoSide> pair, int index) {
                 System.out.println("received on domino added event");
-                DominoWidget dominoWidget = new DominoWidget.Builder(32, 64, RenderLayer.INVENTORY, pair)
-                    .position(index * 64 + 16, 16)
+                DominoWidget dominoWidget = new DominoWidget.Builder(24, 48, RenderLayer.INVENTORY, pair)
+                    .position(index * 48 + 12, 12)
                     .onPress(LevelState.this::onPress)
                     .onRelease(LevelState.this::onRelease)
                     .build();
@@ -91,7 +91,7 @@ public class LevelState implements GameState {
 
     @Override
     public void render(float delta, DrawContext drawContext) {
-        drawContext.draw(AssetsLoader.getSunset(), 0, 0, 640, 480);
+        drawContext.draw(AssetsLoader.getSunset(), 0, 0);
 
         level.render(delta, drawContext);
 

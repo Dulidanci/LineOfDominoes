@@ -27,13 +27,14 @@ public class Level {
 
     public void render(float delta, DrawContext drawContext) {
         path.forEach(pair -> drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
-            pair.getFirst().x() * 32, (pair.getFirst().y() + 3) * 32,
-            16,  16, 32, 32, 1, 1, pair.getSecond().getTurnDegrees()));
+            pair.getFirst().x() * 24, (pair.getFirst().y() + 3) * 24,
+            12,  12, 24, 24, 1, 1, pair.getSecond().getTurnDegrees()));
 
         for (Map.Entry<Position, Domino> entry : this.dominoes.entrySet()) {
-            drawContext.draw(AssetsLoader.getAtlas().findRegion("domino", entry.getValue().getSide().ordinal()),
-                entry.getKey().x() * 32, (entry.getKey().y() + 3) * 32,
-                16, 16, 32, 32, 1, 1, entry.getValue().getDirection().getTurnDegrees());
+            drawContext.draw(AssetsLoader.getAtlas().findRegion(
+                "domino_" + entry.getValue().getSide().ordinal() + "_" + entry.getValue().getDirection().name().toLowerCase()),
+                entry.getKey().x() * 24, (entry.getKey().y() + 3) * 24,
+                12, 12, 24, 24, 1, 1, 0);
         }
     }
 

@@ -13,6 +13,7 @@ public final class AssetsLoader {
         manager.load("lineofdominoes/textures/atlases/domino.atlas", TextureAtlas.class);
         manager.load("lineofdominoes/textures/backgrounds/background.png", Texture.class);
         manager.load("lineofdominoes/textures/backgrounds/sunset.png", Texture.class);
+        manager.load("lineofdominoes/textures/backgrounds/sunset_small.png", Texture.class);
 
 
         manager.finishLoading();
@@ -27,7 +28,7 @@ public final class AssetsLoader {
     }
 
     public static Texture getSunset() {
-        return manager.get("lineofdominoes/textures/backgrounds/sunset.png", Texture.class);
+        return manager.get("lineofdominoes/textures/backgrounds/sunset_small.png", Texture.class);
     }
 
     public static void dispose() {

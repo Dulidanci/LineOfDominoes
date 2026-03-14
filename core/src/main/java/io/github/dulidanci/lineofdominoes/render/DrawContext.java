@@ -11,6 +11,10 @@ public class DrawContext {
         this.batch = batch;
     }
 
+    public void draw(Texture texture, float x, float y) {
+        batch.draw(texture, x, y);
+    }
+
     public void draw(Texture texture, float x, float y, float width, float height) {
         batch.draw(texture, x, y, width, height);
     }

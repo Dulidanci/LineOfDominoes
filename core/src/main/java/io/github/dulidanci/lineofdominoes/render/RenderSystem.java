@@ -8,11 +8,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.dulidanci.lineofdominoes.game.LineOfDominoes;
 import io.github.dulidanci.lineofdominoes.game.states.GameState;
 
 public class RenderSystem {
-    public static final int VIRTUAL_WIDTH = 640;
-    public static final int VIRTUAL_HEIGHT = 480;
+    public static final int VIRTUAL_WIDTH = LineOfDominoes.WIDTH * LineOfDominoes.PIXEL_DENSITY;
+    public static final int VIRTUAL_HEIGHT = (LineOfDominoes.HEIGHT + 3) * LineOfDominoes.PIXEL_DENSITY;
     private final FrameBuffer frameBuffer;
     private final SpriteBatch batch;
     private final FitViewport screenViewport;

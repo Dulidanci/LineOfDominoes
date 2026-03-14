@@ -17,11 +17,11 @@ public class DominoWidget extends Widget {
 
     @Override
     public void render(float delta, DrawContext drawContext) {
-        drawContext.draw(AssetsLoader.getAtlas().findRegion("domino", this.sides.getFirst().ordinal()),
-            x, y, width / 2, height / 4, width, height / 2, 1, 1, Direction.UP.getTurnDegrees());
+        drawContext.draw(AssetsLoader.getAtlas().findRegion("domino_" + sides.getFirst().ordinal() + "_" + Direction.UP.name().toLowerCase()),
+            x, y, width / 2, height / 4, width, height / 2, 1, 1, 0);
 
-        drawContext.draw(AssetsLoader.getAtlas().findRegion("domino", this.sides.getSecond().ordinal()),
-            x, y + 32, width / 2, height * 3 / 4, width, height / 2, 1, 1, Direction.DOWN.getTurnDegrees());
+        drawContext.draw(AssetsLoader.getAtlas().findRegion("domino_" + sides.getSecond().ordinal() + "_" + Direction.DOWN.name().toLowerCase()),
+            x, y + 24, width / 2, height * 3 / 4, width, height / 2, 1, 1, 0);
     }
 
     public Pair<DominoSide, DominoSide> getSides() {

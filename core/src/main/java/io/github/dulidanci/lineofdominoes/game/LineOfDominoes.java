@@ -12,6 +12,7 @@ import io.github.dulidanci.lineofdominoes.render.RenderSystem;
 public class LineOfDominoes extends Game {
     public static final int HEIGHT = 12;
     public static final int WIDTH = 20;
+    public static final int PIXEL_DENSITY = 24;
 
     private InputSystem inputSystem;
     private RenderSystem renderSystem;
