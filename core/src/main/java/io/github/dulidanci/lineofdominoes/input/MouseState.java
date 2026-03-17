@@ -23,6 +23,10 @@ public class MouseState {
 
     private boolean previousLeftPressed;
 
+    public float scrollAmount = 0;
+    public boolean scrolledForward;
+    public boolean scrolledBackward;
+
     public void update() {
         int newX = Gdx.input.getX();
         int newY = Gdx.input.getY();
@@ -40,6 +44,11 @@ public class MouseState {
         leftPressed = current;
 
         previousLeftPressed = current;
+
+        scrolledForward = scrollAmount < 0;
+        scrolledBackward = scrollAmount > 0;
+
+        scrollAmount = 0;
     }
 
     public void projectedMouse(Vector2 mousePosition) {

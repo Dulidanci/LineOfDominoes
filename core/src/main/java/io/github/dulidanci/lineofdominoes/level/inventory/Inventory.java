@@ -5,34 +5,47 @@ import io.github.dulidanci.lineofdominoes.events.InventoryListener;
 import io.github.dulidanci.lineofdominoes.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Inventory {
     public final int count;
-    private final ArrayList<Pair<DominoSide, DominoSide>> inventory = new ArrayList<>();
+    private final ArrayList<Pair<DominoSide, DominoSide>> inventory;
     private InventoryListener listener;
 
     public Inventory(int count) {
         this.count = count;
+        this.inventory = new ArrayList<>(count);
+
+        while(inventory.size() < 10) {
+            addDomino();
+        }
     }
 
     public void update() {
-        if (this.inventory.size() < this.count) {
-            fillUp();
+        for (int i = 0; i < count; i++) {
+            if (inventory.get(i) == null) {
+                generateDomino(i);
+            }
         }
     }
 
-    public void fillUp() {
-        while (this.inventory.size() < count) {
-            generateDomino();
-        }
-    }
-
-    private void generateDomino() {
+    private void addDomino() {
         this.inventory.add(Pair.of(DominoSide.getRandomSide(), DominoSide.getRandomSide()));
 
         if (this.listener != null) {
             this.listener.onDominoAdded(this.inventory.get(this.inventory.size() - 1), this.inventory.size() - 1);
-            System.out.println("sent on domino added event");
+        }
+    }
+
+    private void generateDomino(int index) {
+        if (index < 0 || index >= inventory.size()) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + inventory.size());
+        }
+
+        this.inventory.set(index, Pair.of(DominoSide.getRandomSide(), DominoSide.getRandomSide()));
+
+        if (this.listener != null) {
+            this.listener.onDominoAdded(this.inventory.get(index), index);
         }
     }
 
@@ -40,22 +53,14 @@ public class Inventory {
         return this.inventory.get(index);
     }
 
-    public Pair<DominoSide, DominoSide> takeAndRemove(int index) {
-        Pair<DominoSide, DominoSide> removed = this.inventory.remove(index);
-        if (this.listener != null) {
-            listener.onDominoRemoved(removed, index);
-            System.out.println("sent on domino removed event");
-        }
-        this.fillUp();
-        return removed;
+    public void remove(int index) {
+        this.inventory.set(index, null);
+
+        this.generateDomino(index);
     }
 
     public void clear() {
-        this.inventory.clear();
-    }
-
-    public ArrayList<Pair<DominoSide, DominoSide>> getInventory() {
-        return new ArrayList<>(this.inventory);
+        Collections.fill(inventory, null);
     }
 
     public void setListener(InventoryListener listener) {

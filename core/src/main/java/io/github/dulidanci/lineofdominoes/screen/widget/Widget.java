@@ -1,11 +1,8 @@
 package io.github.dulidanci.lineofdominoes.screen.widget;
 
 import com.badlogic.gdx.math.Vector2;
-import io.github.dulidanci.lineofdominoes.input.InputSystem;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
 import io.github.dulidanci.lineofdominoes.render.RenderLayer;
-
-import java.util.function.Consumer;
 
 public abstract class Widget {
     protected float x;
@@ -13,59 +10,21 @@ public abstract class Widget {
     protected final float width;
     protected final float height;
     protected final RenderLayer layer;
-    protected final Consumer<Widget> onPress;
-    protected final Consumer<Widget> onRelease;
     protected boolean disabled;
-    protected boolean hovered;
-    protected boolean pressed;
-    protected boolean held;
-    protected boolean released;
+
 
     protected Widget(Builder<?> builder) {
         this.x = builder.x;
         this.y = builder.y;
         this.width = builder.width;
         this.height = builder.height;
-        this.hovered = false;
-        this.pressed = false;
-        this.held = false;
-        this.released = false;
         this.disabled = builder.disabled;
         this.layer = builder.layer;
-        this.onPress = builder.onPress;
-        this.onRelease = builder.onRelease;
     }
 
-    public void update(float delta) {
-    }
+    public abstract void update(float delta);
 
-    public void render(float delta, DrawContext drawContext) {
-
-    }
-
-    public void handleInput(float delta, InputSystem inputSystem) {
-        if (this.disabled) return;
-
-        float mouseX = inputSystem.getMouse().worldX;
-        float mouseY = inputSystem.getMouse().worldY;
-
-        this.hovered = this.contains(mouseX, mouseY);
-        this.pressed = this.hovered && inputSystem.getMouse().leftJustPressed;
-        this.released = this.held && inputSystem.getMouse().leftJustReleased;
-        this.held = (this.pressed || this.held) && inputSystem.getMouse().leftPressed;
-
-        if (this.pressed && this.onPress != null) {
-            this.onPress.accept(this);
-        }
-
-        if (this.held) {
-            this.move(new Vector2(inputSystem.getMouse().deltaWorldX, inputSystem.getMouse().deltaWorldY));
-        }
-
-        if (this.released && this.onRelease != null) {
-            this.onRelease.accept(this);
-        }
-    }
+    public abstract void render(float delta, DrawContext drawContext);
 
     public boolean contains(float mouseX, float mouseY) {
         return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height;
@@ -76,6 +35,11 @@ public abstract class Widget {
         this.y += vector.y;
     }
 
+    public void moveTo(Vector2 vector) {
+        this.x = vector.x;
+        this.y = vector.y;
+    }
+
     public float getX() {
         return x;
     }
@@ -84,12 +48,12 @@ public abstract class Widget {
         return y;
     }
 
-    public float getHeight() {
-        return height;
-    }
-
     public float getWidth() {
         return width;
+    }
+
+    public float getHeight() {
+        return height;
     }
 
     public RenderLayer getLayer() {
@@ -101,14 +65,12 @@ public abstract class Widget {
     }
 
     public abstract static class Builder<T extends Builder<T>> {
-        private float x = 0;
-        private float y = 0;
-        private final float width;
-        private final float height;
-        private boolean disabled = false;
-        private final RenderLayer layer;
-        private Consumer<Widget> onPress;
-        private Consumer<Widget> onRelease;
+        protected float x = 0;
+        protected float y = 0;
+        protected final float width;
+        protected final float height;
+        protected boolean disabled = false;
+        protected final RenderLayer layer;
 
         protected Builder(float width, float height, RenderLayer layer) {
             this.width = width;
@@ -126,16 +88,6 @@ public abstract class Widget {
 
         public T disabled(boolean disabled) {
             this.disabled = disabled;
-            return self();
-        }
-
-        public T onPress(Consumer<Widget> onPress) {
-            this.onPress = onPress;
-            return self();
-        }
-
-        public T onRelease(Consumer<Widget> onRelease) {
-            this.onRelease = onRelease;
             return self();
         }
 

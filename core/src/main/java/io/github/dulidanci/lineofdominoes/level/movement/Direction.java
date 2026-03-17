@@ -23,4 +23,12 @@ public enum Direction {
     public int getTurnDegrees() {
         return this.ordinal() * 90;
     }
+
+    public boolean isVertical() {
+        return this == Direction.DOWN || this == Direction.UP;
+    }
+
+    public boolean isHorizontal() {
+        return this == Direction.RIGHT || this == Direction.LEFT;
+    }
 }

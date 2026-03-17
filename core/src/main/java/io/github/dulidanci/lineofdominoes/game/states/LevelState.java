@@ -6,19 +6,17 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
-import io.github.dulidanci.lineofdominoes.domino.DominoSide;
-import io.github.dulidanci.lineofdominoes.events.InventoryListener;
+import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.game.LineOfDominoes;
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
 import io.github.dulidanci.lineofdominoes.level.Level;
 import io.github.dulidanci.lineofdominoes.level.generator.LevelGenerator;
 import io.github.dulidanci.lineofdominoes.level.inventory.Inventory;
+import io.github.dulidanci.lineofdominoes.level.movement.Position;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
 import io.github.dulidanci.lineofdominoes.render.RenderLayer;
 import io.github.dulidanci.lineofdominoes.screen.UIManager;
 import io.github.dulidanci.lineofdominoes.screen.widget.DominoWidget;
-import io.github.dulidanci.lineofdominoes.screen.widget.Widget;
-import io.github.dulidanci.lineofdominoes.util.Pair;
 
 public class LevelState implements GameState {
     private final FitViewport viewport;
@@ -37,23 +35,13 @@ public class LevelState implements GameState {
 
         this.viewport = new FitViewport(LineOfDominoes.WIDTH * LineOfDominoes.PIXEL_DENSITY, (LineOfDominoes.HEIGHT + 3) * LineOfDominoes.PIXEL_DENSITY);
 
-        this.inventory.setListener(new InventoryListener() {
-            @Override
-            public void onDominoAdded(Pair<DominoSide, DominoSide> pair, int index) {
-                System.out.println("received on domino added event");
-                DominoWidget dominoWidget = new DominoWidget.Builder(24, 48, RenderLayer.INVENTORY, pair)
-                    .position(index * 48 + 12, 12)
-                    .onPress(LevelState.this::onPress)
-                    .onRelease(LevelState.this::onRelease)
-                    .build();
-                uiManager.addDomino(dominoWidget);
-            }
-
-            @Override
-            public void onDominoRemoved(Pair<DominoSide, DominoSide> pair, int index) {
-                System.out.println("received on domino removed event");
-                // todo: this
-            }
+        this.inventory.setListener((pair, index) -> {
+            DominoWidget dominoWidget = (DominoWidget) new DominoWidget.Builder(24, 48, RenderLayer.INVENTORY, pair, index)
+                .position(index * 48 + 12, 12)
+                .onPress(widget -> LevelState.this.onPress((DominoWidget) widget))
+                .onRelease(widget -> LevelState.this.onRelease((DominoWidget) widget))
+                .build();
+            uiManager.addDomino(index, dominoWidget);
         });
     }
 
@@ -61,6 +49,7 @@ public class LevelState implements GameState {
     public void enter() {
         // todo: this is where the starting domino height is declared. It shouldn't be random always
         this.uiManager.clear();
+        this.uiManager.unfocusDomino();
         this.level = generator.generateLevel((int) (Math.random() * LineOfDominoes.HEIGHT));
         this.inventory.clear();
         this.paused = false;
@@ -70,23 +59,25 @@ public class LevelState implements GameState {
     public void update(float delta, InputSystem inputSystem) {
         if (paused) return;
 
+        mouse.set(inputSystem.getMouse().x, inputSystem.getMouse().y, 0);
+        viewport.unproject(mouse);
+        inputSystem.getMouse().projectedMouse(new Vector2(mouse.x, mouse.y));
+
         // todo: remove this
         if (inputSystem.getKeyboard().isJustPressed(Input.Keys.R)) {
             this.enter();
         }
 
-        mouse.set(inputSystem.getMouse().x, inputSystem.getMouse().y, 0);
-        viewport.unproject(mouse);
-        inputSystem.getMouse().projectedMouse(new Vector2(mouse.x, mouse.y));
+        if (inputSystem.getMouse().scrolledForward && uiManager.getFocusedDomino() != null) {
+                uiManager.getFocusedDomino().rotate(1);
+        }
+
+        if (inputSystem.getMouse().scrolledBackward && uiManager.getFocusedDomino() != null) {
+            uiManager.getFocusedDomino().rotate(-1);
+        }
 
         inventory.update();
         uiManager.update(delta, inputSystem);
-
-        // todo: remove this
-        if (inputSystem.getMouse().leftJustPressed) {
-            System.out.println("Mouse at screen (" + inputSystem.getMouse().x + ", " + inputSystem.getMouse().y + ")," +
-                " world " + inputSystem.getMouse().worldX + ", " + inputSystem.getMouse().worldY + ")");
-        }
     }
 
     @Override
@@ -124,14 +115,28 @@ public class LevelState implements GameState {
         viewport.update(width, height, true);
     }
 
-    public void onPress(Widget widget) {
-        System.out.println("LevelState::onPress");
+    public void onPress(DominoWidget widget) {
+        uiManager.focusDomino(widget.getIndex());
     }
 
-    public void onRelease(Widget widget) {
-        System.out.println("LevelState::onRelease");
+    public void onRelease(DominoWidget widget) {
+        Position gridPosition = new Position(
+            (int) (widget.getCenterX() + widget.getRotation().getOpposite().getVector().x() * 12) / 24,
+            (int) (widget.getCenterY() + widget.getRotation().getOpposite().getVector().y() * 12) / 24 - 3);
+
+        Domino domino = new Domino(gridPosition, widget.getRotation(), inventory.get(widget.getIndex()).getFirst(), inventory.get(widget.getIndex()).getSecond());
+
+        if (level.canPlace(domino)) {
+            level.placeDomino(domino);
+            uiManager.removeDomino(widget.getIndex());
+            inventory.remove(widget.getIndex());
+            uiManager.unfocusDomino();
+        }
+
+        widget.moveTo(new Vector2(widget.getOriginX(), widget.getOriginY()));
     }
 
+    @Override
     public Viewport getViewport() {
         return viewport;
     }

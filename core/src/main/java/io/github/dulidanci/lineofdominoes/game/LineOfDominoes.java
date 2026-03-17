@@ -23,6 +23,8 @@ public class LineOfDominoes extends Game {
         AssetsLoader.init();
 
         inputSystem = new InputSystem();
+        Gdx.input.setInputProcessor(inputSystem);
+
         renderSystem = new RenderSystem();
         gsm = new GameStateManager();
 

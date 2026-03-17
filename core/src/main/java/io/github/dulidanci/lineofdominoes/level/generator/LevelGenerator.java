@@ -3,7 +3,6 @@ package io.github.dulidanci.lineofdominoes.level.generator;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.domino.DominoSide;
 import io.github.dulidanci.lineofdominoes.level.Level;
-import io.github.dulidanci.lineofdominoes.level.Validator;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.level.movement.Position;
 import io.github.dulidanci.lineofdominoes.util.Pair;
@@ -13,12 +12,12 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class LevelGenerator {
-    public final int width;
-    public final int height;
-    public boolean[][] visited;
-    public final ArrayList<Pair<Position, Direction>> path = new ArrayList<>();
+    private final int width;
+    private final int height;
+    private boolean[][] visited;
+    private final ArrayList<Pair<Position, Direction>> emptySpaces = new ArrayList<>();
     public final float dominoPercentage = 0.2f;
-    public final ArrayList<Pair<Domino, Domino>> dominoes = new ArrayList<>();
+    private final ArrayList<Domino> dominoes = new ArrayList<>();
 
     public LevelGenerator(int width, int height) {
         this.width = width;
@@ -28,24 +27,30 @@ public class LevelGenerator {
 
     public void reset() {
         this.visited = new boolean[width + 1][height];
-        this.path.clear();
+        this.emptySpaces.clear();
         this.dominoes.clear();
     }
 
     public Level generateLevel(int startY) {
         this.reset();
-        Level.Builder builder = Level.builder().width(width).height(height);
         this.generatePath(startY);
+
+        ArrayList<Pair<Position, Direction>> path = new ArrayList<>();
+        emptySpaces.forEach(pair -> {
+            path.add(Pair.of(pair.getFirst().add(Direction.RIGHT.getVector()), pair.getSecond()));
+            path.add(Pair.of(pair.getFirst().add(pair.getSecond().getVector()).add(Direction.RIGHT.getVector()), pair.getSecond().getOpposite()));
+        });
+        Level.Builder builder = new Level.Builder(path);
+
         this.generateDominoes();
-        dominoes.forEach(dominoPair -> path.remove(Pair.of(dominoPair.getFirst().getPosition().add(Direction.LEFT.getVector()), dominoPair.getFirst().getDirection())));
-        path.forEach(pair -> builder.addPath(pair.getFirst().add(Direction.RIGHT.getVector()), pair.getSecond()));
-        dominoes.forEach(domino -> builder.addDominoList(this.dominoes));
+        builder.addDominoList(this.dominoes);
+
         return builder.build();
     }
 
     private void generatePath(int startY) {
         if (Validator.validateIndex(0, startY, width, height)) {
-            path.add(Pair.of(new Position(-2, startY), Direction.RIGHT));
+            emptySpaces.add(Pair.of(new Position(-2, startY), Direction.RIGHT));
             visit(0, startY);
         } else {
             throw new IllegalStateException("Invalid index when generating level: " + startY + " - " + height);
@@ -66,13 +71,13 @@ public class LevelGenerator {
             });
 
             if (neighbours.isEmpty()) {
-                path.remove(path.size() - 1);
+                emptySpaces.remove(emptySpaces.size() - 1);
                 return false;
             }
 
             Direction chosenDirection = neighbours.get((int) (Math.random() * neighbours.size()));
 
-            path.add(Pair.of(new Position(x, y), chosenDirection));
+            emptySpaces.add(Pair.of(new Position(x, y), chosenDirection));
 
             if (x + chosenDirection.getVector().scale(2).x() >= width - 1 ||
                 visit(x + chosenDirection.getVector().scale(2).x(), y + chosenDirection.getVector().scale(2).y())) {
@@ -82,21 +87,21 @@ public class LevelGenerator {
     }
 
     private void generateDominoes() {
-        for (int i = 0; i < path.size(); i++) {
+        for (int i = 0; i < emptySpaces.size(); i++) {
             dominoes.add(i, null);
         }
 
-        int targetNumber = Math.round(path.size() * dominoPercentage);
+        int targetNumber = Math.round(emptySpaces.size() * dominoPercentage);
         if (targetNumber > dominoes.size()) {
             throw new ArrayIndexOutOfBoundsException("Tried to generate more dominoes than there are spaces for them!" + targetNumber + " > " + dominoes.size());
         }
 
         this.createDominoIgnoringNeighbours(0);
-        this.createDominoIgnoringNeighbours(path.size() - 1);
+        this.createDominoIgnoringNeighbours(emptySpaces.size() - 1);
 
         int generated = 2;
         while (generated < targetNumber) {
-            if (createDomino((int) (Math.random() * path.size()))) {
+            if (createDomino((int) (Math.random() * emptySpaces.size()))) {
                 generated++;
             }
         }
@@ -107,22 +112,27 @@ public class LevelGenerator {
     private boolean createDomino(int indexInPath) {
         if (dominoes.get(indexInPath) == null) {
 
-            dominoes.set(indexInPath, Pair.of(
-                new Domino(path.get(indexInPath).getFirst().add(Direction.RIGHT.getVector()), path.get(indexInPath).getSecond(),
-                    dominoes.get(indexInPath - 1) != null ? dominoes.get(indexInPath - 1).getSecond().getSide() : DominoSide.getRandomSide()),
-                new Domino(path.get(indexInPath).getFirst().add(path.get(indexInPath).getSecond().getVector()).add(Direction.RIGHT.getVector()), path.get(indexInPath).getSecond().getOpposite(),
-                    dominoes.get(indexInPath + 1) != null ? dominoes.get(indexInPath + 1).getFirst().getSide() : DominoSide.getRandomSide())));
-
+            dominoes.set(indexInPath, new Domino(
+                emptySpaces.get(indexInPath).getFirst().add(Direction.RIGHT.getVector()),
+                emptySpaces.get(indexInPath).getSecond(),
+                dominoes.get(indexInPath - 1) != null ? dominoes.get(indexInPath - 1).getSecondSide() : DominoSide.getRandomSide(),
+                dominoes.get(indexInPath + 1) != null ? dominoes.get(indexInPath + 1).getFirstSide() : DominoSide.getRandomSide()));
             return true;
         }
         return false;
     }
 
     private void createDominoIgnoringNeighbours(int indexInPath) {
-        dominoes.set(indexInPath, Pair.of(
-            new Domino(path.get(indexInPath).getFirst().add(Direction.RIGHT.getVector()), path.get(indexInPath).getSecond(), DominoSide.getRandomSide()),
-            new Domino(path.get(indexInPath).getFirst().add(path.get(indexInPath).getSecond().getVector()).add(Direction.RIGHT.getVector()), path.get(indexInPath).getSecond().getOpposite(), DominoSide.getRandomSide())));
+        dominoes.set(indexInPath, new Domino(
+            emptySpaces.get(indexInPath).getFirst().add(Direction.RIGHT.getVector()),
+            emptySpaces.get(indexInPath).getSecond(),
+            DominoSide.getRandomSide(),
+            DominoSide.getRandomSide()));
     }
 
-
+    public static class Validator {
+        public static boolean validateIndex(int x, int y, int width, int height) {
+            return x >= 0 && x < width && y >= 0 && y < height;
+        }
+    }
 }

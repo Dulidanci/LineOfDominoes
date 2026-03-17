@@ -5,6 +5,4 @@ import io.github.dulidanci.lineofdominoes.util.Pair;
 
 public interface InventoryListener {
     void onDominoAdded(Pair<DominoSide, DominoSide> pair, int index);
-
-    void onDominoRemoved(Pair<DominoSide, DominoSide> pair, int index);
 }

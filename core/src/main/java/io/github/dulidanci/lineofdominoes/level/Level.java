@@ -1,7 +1,7 @@
 package io.github.dulidanci.lineofdominoes.level;
 
+import com.badlogic.gdx.Gdx;
 import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
-import io.github.dulidanci.lineofdominoes.domino.DominoSide;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
@@ -13,92 +13,99 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Level {
-    public final int width;
-    public final int height;
     private final ArrayList<Pair<Position, Direction>> path;
+    private final ArrayList<Pair<Position, Direction>> emptySpaces;
     private final Map<Position, Domino> dominoes;
 
     private Level(Builder builder) {
-        this.width = builder.width;
-        this.height = builder.height;
         this.path = builder.path;
+        this.emptySpaces = builder.emptySpaces;
         this.dominoes = builder.dominoes;
     }
 
     public void render(float delta, DrawContext drawContext) {
-        path.forEach(pair -> drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
+        emptySpaces.forEach(pair -> drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
             pair.getFirst().x() * 24, (pair.getFirst().y() + 3) * 24,
             12,  12, 24, 24, 1, 1, pair.getSecond().getTurnDegrees()));
 
         for (Map.Entry<Position, Domino> entry : this.dominoes.entrySet()) {
             drawContext.draw(AssetsLoader.getAtlas().findRegion(
-                "domino_" + entry.getValue().getSide().ordinal() + "_" + entry.getValue().getDirection().name().toLowerCase()),
+                "domino_" + entry.getValue().getFirstSide().ordinal() + "_" + entry.getValue().getDirection().name().toLowerCase()),
                 entry.getKey().x() * 24, (entry.getKey().y() + 3) * 24,
                 12, 12, 24, 24, 1, 1, 0);
         }
     }
 
-    public void addDomino(Position position, Direction direction, DominoSide first, DominoSide second) {
-        //if (validator.validateCoordinates(position, direction)) {
-        dominoes.put(position,
-            new Domino(position, direction, first));
-        dominoes.put(position.add(direction.getVector()),
-            new Domino(position.add(direction.getVector()), direction.getOpposite(), second));
-        //}
+    public boolean canPlace(Domino domino) {
+        return canPlace(domino, false);
     }
 
-    public ArrayList<Domino> getDominoes() {
-        ArrayList<Domino> dominoes = new ArrayList<>();
-        for (Map.Entry<Position, Domino> entry : this.dominoes.entrySet()) {
-            dominoes.add(entry.getValue());
+    public boolean canPlace(Domino domino, boolean log) {
+        if (domino.getFirstSide() == null || domino.getSecondSide() == null) {
+            if (log) Gdx.app.error("Level", "Tried to add a domino with missing side values!");
+            return false;
         }
-        return dominoes;
+
+        if (!emptySpaces.contains(Pair.of(domino.getPosition(), domino.getDirection()))) {
+            if (log) Gdx.app.error("Level", "Tried to add a domino to a position that is not included in emptySpaces");
+            return false;
+        }
+
+        Domino checkedDomino = path.get(path.indexOf(Pair.of(domino.getPosition(), domino.getDirection())) - 1).equals(
+            Pair.of(domino.getPosition().add(domino.getDirection().getVector()), domino.getDirection().getOpposite())) ? domino.flipped() : domino;
+
+        return (!(dominoes.containsKey(path.get(path.indexOf(Pair.of(checkedDomino.getPosition(), checkedDomino.getDirection())) - 1).getFirst())) ||
+                dominoes.get(path.get(path.indexOf(Pair.of(checkedDomino.getPosition(), checkedDomino.getDirection())) - 1).getFirst()).getFirstSide().equals(
+                    checkedDomino.getFirstSide())) &&
+            (!(dominoes.containsKey(path.get(path.indexOf(Pair.of(checkedDomino.getPosition(), checkedDomino.getDirection())) + 2).getFirst())) ||
+                dominoes.get(path.get(path.indexOf(Pair.of(checkedDomino.getPosition(), checkedDomino.getDirection())) + 2).getFirst()).getFirstSide().equals(
+                    checkedDomino.getSecondSide()));
     }
 
-    public ArrayList<Pair<Position, Direction>> getPath() {
-        return new ArrayList<>(this.path);
-    }
+    public void placeDomino(Domino domino) {
+        if (!canPlace(domino, true)) {
+            Gdx.app.error("Level", "Couldn't place domino due to previously mentioned reason. Dismissing domino");
+            return;
+        }
 
-    public static Builder builder() {
-        return new Builder();
+        Pair<Domino, Domino> halves = domino.split();
+        dominoes.put(halves.getFirst().getPosition(), halves.getFirst());
+        emptySpaces.remove(Pair.of(halves.getFirst().getPosition(), halves.getFirst().getDirection()));
+        dominoes.put(halves.getSecond().getPosition(), halves.getSecond());
+        emptySpaces.remove(Pair.of(halves.getSecond().getPosition(), halves.getSecond().getDirection()));
     }
 
     public static class Builder {
-        private int width = 0;
-        private int height = 0;
-        private final ArrayList<Pair<Position, Direction>> path = new ArrayList<>();
-        private final Map<Position, Domino> dominoes = new HashMap<>();
+        private final ArrayList<Pair<Position, Direction>> path;
+        private final ArrayList<Pair<Position, Direction>> emptySpaces;
+        private final Map<Position, Domino> dominoes;
 
-        public Builder width(int width) {
-            this.width = width;
+        public Builder(ArrayList<Pair<Position, Direction>> path) {
+            this.path = new ArrayList<>(path);
+            this.emptySpaces = new ArrayList<>(path);
+            this.dominoes = new HashMap<>();
+        }
+
+        public Builder addDominoList(ArrayList<Domino> dominoes) {
+            dominoes.forEach(this::addDomino);
             return this;
         }
 
-        public Builder height(int height) {
-            this.height = height;
-            return this;
-        }
-
-        public Builder addDominoList(ArrayList<Pair<Domino, Domino>> dominoes) {
-            for (Pair<Domino, Domino> pair : dominoes) {
-                if (Validator.neighbouringDominoes(pair.getFirst(), pair.getSecond())) {
-                    this.addDomino(pair.getFirst().getPosition(), pair.getFirst().getDirection(), pair.getFirst().getSide(), pair.getSecond().getSide());
-                } else {
-                    throw new IllegalArgumentException("Tried to add a domino, that has incorrect linking: " + pair.getFirst() + " " + pair.getSecond());
-                }
+        public Builder addDomino(Domino domino) {
+            if (domino.getFirstSide() == null || domino.getSecondSide() == null) {
+                Gdx.app.error("Level.Builder", "Tried to add a domino with missing side values! Dismissing domino");
+                return this;
             }
-            return this;
-        }
 
-        public Builder addDomino(Position position, Direction direction, DominoSide first, DominoSide second) {
-            dominoes.put(position, new Domino(position, direction, first));
-            dominoes.put(position.add(direction.getVector()), new Domino(position.add(direction.getVector()), direction.getOpposite(), second));
-            return this;
-        }
-
-        public Builder addPath(Position position, Direction direction) {
-            path.add(Pair.of(position, direction));
-            path.add(Pair.of(position.add(direction.getVector()), direction.getOpposite()));
+            Pair<Domino, Domino> halves = domino.split();
+            if (emptySpaces.contains(Pair.of(halves.getFirst().getPosition(), halves.getFirst().getDirection()))) {
+                dominoes.put(halves.getFirst().getPosition(), halves.getFirst());
+                emptySpaces.remove(Pair.of(halves.getFirst().getPosition(), halves.getFirst().getDirection()));
+                dominoes.put(halves.getSecond().getPosition(), halves.getSecond());
+                emptySpaces.remove(Pair.of(halves.getSecond().getPosition(), halves.getSecond().getDirection()));
+            } else {
+                throw new IndexOutOfBoundsException("Tried to add a domino, that has incorrect position: " + halves.getFirst() + " " + halves.getSecond());
+            }
             return this;
         }
 
