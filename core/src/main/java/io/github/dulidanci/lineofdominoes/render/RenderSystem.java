@@ -1,19 +1,25 @@
 package io.github.dulidanci.lineofdominoes.render;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.dulidanci.lineofdominoes.assets.AssetId;
+import io.github.dulidanci.lineofdominoes.assets.AtlasIds;
+import io.github.dulidanci.lineofdominoes.assets.TextureIds;
 import io.github.dulidanci.lineofdominoes.game.LineOfDominoes;
 import io.github.dulidanci.lineofdominoes.game.states.GameState;
 
 public class RenderSystem {
     public static final int VIRTUAL_WIDTH = LineOfDominoes.WIDTH * LineOfDominoes.PIXEL_DENSITY;
     public static final int VIRTUAL_HEIGHT = (LineOfDominoes.HEIGHT + 3) * LineOfDominoes.PIXEL_DENSITY;
+    private final AssetManager assetManager;
     private final FrameBuffer frameBuffer;
     private final SpriteBatch batch;
     private final FitViewport screenViewport;
@@ -24,6 +30,15 @@ public class RenderSystem {
 
         this.screenViewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         this.screenViewport.apply();
+
+        this.assetManager = new AssetManager();
+        for (AssetId<Texture> asset : TextureIds.values()) {
+            this.assetManager.load(asset.path(), Texture.class);
+        }
+        for (AssetId<TextureAtlas> asset : AtlasIds.values()) {
+            this.assetManager.load(asset.path(), TextureAtlas.class);
+        }
+        this.assetManager.finishLoading();
     }
 
     public void render(float delta, GameState[] states) {
@@ -37,7 +52,7 @@ public class RenderSystem {
             this.batch.setProjectionMatrix(viewport.getCamera().combined);
             this.batch.begin();
 
-            DrawContext drawContext = new DrawContext(this.batch);
+            DrawContext drawContext = new DrawContext(this.batch, this.assetManager);
 
             state.render(delta, drawContext);
 
@@ -72,5 +87,6 @@ public class RenderSystem {
     public void dispose() {
         batch.dispose();
         frameBuffer.dispose();
+        assetManager.dispose();
     }
 }

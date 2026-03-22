@@ -1,6 +1,6 @@
 package io.github.dulidanci.lineofdominoes.screen;
 
-import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
+import io.github.dulidanci.lineofdominoes.assets.AtlasIds;
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
@@ -85,10 +85,10 @@ public class UIManager {
             float centerX = dominoWidget.getAnchorX() + dominoWidget.getWidth() / 2;
             float centerY = dominoWidget.getAnchorY() + dominoWidget.getHeight() / 2;
 
-            drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
+            drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion("path_marker"),
                 centerX - 12 + rotation.getOpposite().getVector().x() * 12, centerY - 12 + rotation.getOpposite().getVector().y() * 12,
                 12, 12, 24, 24, 1.25f, 1.25f,rotation.getTurnDegrees());
-            drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
+            drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion("path_marker"),
                 centerX - 12 + rotation.getVector().x() * 12, centerY - 12 + rotation.getVector().y() * 12,
                 12, 12, 24, 24, 1.25f, 1.25f, rotation.getOpposite().getTurnDegrees());
         }

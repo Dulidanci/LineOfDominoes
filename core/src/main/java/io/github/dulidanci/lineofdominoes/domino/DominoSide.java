@@ -7,10 +7,10 @@ public enum DominoSide {
     THREE,
     FOUR,
     FIVE,
-    SIX,
-    SEVEN,
-    EIGHT,
-    NINE;
+    SIX;
+//    SEVEN,
+//    EIGHT,
+//    NINE;
 
     public static DominoSide getRandomSide() {
         return DominoSide.values()[(int) (Math.random() * DominoSide.values().length)];

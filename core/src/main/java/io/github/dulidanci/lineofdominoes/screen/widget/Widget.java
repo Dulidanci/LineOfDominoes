@@ -40,14 +40,6 @@ public abstract class Widget {
         this.y = vector.y;
     }
 
-    public float getX() {
-        return x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
     public float getWidth() {
         return width;
     }

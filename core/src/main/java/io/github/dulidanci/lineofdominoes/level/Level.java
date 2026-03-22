@@ -1,7 +1,7 @@
 package io.github.dulidanci.lineofdominoes.level;
 
 import com.badlogic.gdx.Gdx;
-import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
+import io.github.dulidanci.lineofdominoes.assets.AtlasIds;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
@@ -24,12 +24,13 @@ public class Level {
     }
 
     public void render(float delta, DrawContext drawContext) {
-        emptySpaces.forEach(pair -> drawContext.draw(AssetsLoader.getAtlas().findRegion("path_marker"),
+        emptySpaces.forEach(pair ->
+            drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion("path_marker"),
             pair.getFirst().x() * 24, (pair.getFirst().y() + 3) * 24,
             12,  12, 24, 24, 1, 1, pair.getSecond().getTurnDegrees()));
 
         for (Map.Entry<Position, Domino> entry : this.dominoes.entrySet()) {
-            drawContext.draw(AssetsLoader.getAtlas().findRegion(
+            drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion(
                 "domino_" + entry.getValue().getFirstSide().ordinal() + "_" + entry.getValue().getDirection().name().toLowerCase()),
                 entry.getKey().x() * 24, (entry.getKey().y() + 3) * 24,
                 12, 12, 24, 24, 1, 1, 0);

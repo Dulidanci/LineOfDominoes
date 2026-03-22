@@ -1,7 +1,7 @@
 package io.github.dulidanci.lineofdominoes.screen.widget;
 
 import com.badlogic.gdx.math.Vector2;
-import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
+import io.github.dulidanci.lineofdominoes.assets.AtlasIds;
 import io.github.dulidanci.lineofdominoes.domino.DominoSide;
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
@@ -43,10 +43,12 @@ public class DominoWidget extends ClickableWidget {
 
     @Override
     public void render(float delta, DrawContext drawContext) {
-        drawContext.draw(AssetsLoader.getAtlas().findRegion("domino_" + sides.getFirst().ordinal() + "_" + rotation.name().toLowerCase()),
+        drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion(
+            "domino_" + sides.getFirst().ordinal() + "_" + rotation.name().toLowerCase()),
             getCenterX() - 12 + rotation.getOpposite().getVector().x() * 12, getCenterY() - 12 + rotation.getOpposite().getVector().y() * 12,
             width / 2, height / 2, width, height / 2, 1, 1, 0);
-        drawContext.draw(AssetsLoader.getAtlas().findRegion("domino_" + sides.getSecond().ordinal() + "_" + rotation.getOpposite().name().toLowerCase()),
+        drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion(
+            "domino_" + sides.getSecond().ordinal() + "_" + rotation.getOpposite().name().toLowerCase()),
             getCenterX() - 12 + rotation.getVector().x() * 12, getCenterY() - 12 + rotation.getVector().y() * 12,
             width / 2, height / 2, width, height / 2, 1, 1, 0);
     }

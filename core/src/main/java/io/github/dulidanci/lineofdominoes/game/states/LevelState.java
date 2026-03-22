@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import io.github.dulidanci.lineofdominoes.assets.AssetsLoader;
+import io.github.dulidanci.lineofdominoes.assets.TextureIds;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.game.LineOfDominoes;
 import io.github.dulidanci.lineofdominoes.input.InputSystem;
@@ -82,7 +82,7 @@ public class LevelState implements GameState {
 
     @Override
     public void render(float delta, DrawContext drawContext) {
-        drawContext.draw(AssetsLoader.getSunset(), 0, 0);
+        drawContext.draw(drawContext.getAssetManager().get(TextureIds.SUNSET_SMALL.path(), TextureIds.SUNSET_SMALL.type()), 0, 0);
 
         level.render(delta, drawContext);
 
