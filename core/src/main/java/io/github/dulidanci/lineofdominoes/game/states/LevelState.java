@@ -15,6 +15,7 @@ import io.github.dulidanci.lineofdominoes.level.inventory.Inventory;
 import io.github.dulidanci.lineofdominoes.level.movement.Position;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
 import io.github.dulidanci.lineofdominoes.render.RenderLayer;
+import io.github.dulidanci.lineofdominoes.render.RenderSystem;
 import io.github.dulidanci.lineofdominoes.screen.UIManager;
 import io.github.dulidanci.lineofdominoes.screen.widget.DominoWidget;
 
@@ -25,8 +26,12 @@ public class LevelState implements GameState {
     private final Inventory inventory;
     private final UIManager uiManager;
     private Level level;
+    private Level previousLevel;
     private boolean paused;
-
+    private boolean won;
+    private boolean lost;
+    public static final float LEVEL_TRANSITION_TIME = 2.0f;
+    private float elapsedTime;
 
     public LevelState() {
         this.generator = new LevelGenerator(LineOfDominoes.WIDTH, LineOfDominoes.HEIGHT);
@@ -47,12 +52,14 @@ public class LevelState implements GameState {
 
     @Override
     public void enter() {
-        // todo: this is where the starting domino height is declared. It shouldn't be random always
         this.uiManager.clear();
         this.uiManager.unfocusDomino();
-        this.level = generator.generateLevel((int) (Math.random() * LineOfDominoes.HEIGHT));
+        this.level = generator.generateLevel((int) (Math.random() * LineOfDominoes.HEIGHT), null);
         this.inventory.clear();
         this.paused = false;
+        this.won = false;
+        this.lost = false;
+        this.elapsedTime = 0.0f;
     }
 
     @Override
@@ -68,16 +75,33 @@ public class LevelState implements GameState {
             this.enter();
         }
 
-        if (inputSystem.getMouse().scrolledForward && uiManager.getFocusedDomino() != null) {
+        if (won) {
+            elapsedTime += delta;
+            float t = elapsedTime / LevelState.LEVEL_TRANSITION_TIME;
+            if (t <= 1.0f) {
+                // Bézier curve
+                level.anchorX = (1 - t * t * (3.0f - 2.0f * t)) * RenderSystem.VIRTUAL_WIDTH;
+                previousLevel.anchorX = -t * t * (3.0f - 2.0f * t) * RenderSystem.VIRTUAL_WIDTH;
+            } else {
+                level.anchorX = 0;
+                previousLevel = null;
+                won = false;
+                elapsedTime = 0.0f;
+            }
+        } else if (lost) {
+            System.out.println("Have lost");
+        } else {
+            if (inputSystem.getMouse().scrolledForward && uiManager.getFocusedDomino() != null) {
                 uiManager.getFocusedDomino().rotate(1);
-        }
+            }
 
-        if (inputSystem.getMouse().scrolledBackward && uiManager.getFocusedDomino() != null) {
-            uiManager.getFocusedDomino().rotate(-1);
-        }
+            if (inputSystem.getMouse().scrolledBackward && uiManager.getFocusedDomino() != null) {
+                uiManager.getFocusedDomino().rotate(-1);
+            }
 
-        inventory.update();
-        uiManager.update(delta, inputSystem);
+            inventory.update();
+            uiManager.update(delta, inputSystem);
+        }
     }
 
     @Override
@@ -85,18 +109,19 @@ public class LevelState implements GameState {
         drawContext.draw(drawContext.getAssetManager().get(TextureIds.SUNSET_SMALL.path(), TextureIds.SUNSET_SMALL.type()), 0, 0);
 
         level.render(delta, drawContext);
+        if (previousLevel != null) previousLevel.render(delta, drawContext);
 
         uiManager.render(delta, drawContext);
     }
 
     @Override
     public void pause() {
-        this.paused = true;
+        paused = true;
     }
 
     @Override
     public void resume() {
-        this.paused = false;
+        paused = false;
     }
 
     @Override
@@ -106,8 +131,8 @@ public class LevelState implements GameState {
 
     @Override
     public void dispose() {
-        this.inventory.dispose();
-        this.uiManager.dispose();
+        inventory.dispose();
+        uiManager.dispose();
     }
 
     @Override
@@ -131,9 +156,31 @@ public class LevelState implements GameState {
             uiManager.removeDomino(widget.getIndex());
             inventory.remove(widget.getIndex());
             uiManager.unfocusDomino();
-        }
 
-        widget.moveTo(new Vector2(widget.getOriginX(), widget.getOriginY()));
+            if (level.remainingSpaces() == 0) {
+                won = true;
+                onWin();
+            } else {
+                boolean haveLost = true;
+                for (int i = 0; i < inventory.count; i++) {
+                    if (level.canPlaceAnywhere(inventory.get(i))) {
+                        haveLost = false;
+                        break;
+                    }
+                }
+                if (haveLost) {
+                    lost = true;
+                }
+            }
+        }
+    }
+
+    public void onWin() {
+        previousLevel = level;
+        Domino finishingDomino = previousLevel.getFinishDomino();
+        level = generator.generateLevel(finishingDomino.getPosition().y(), finishingDomino);
+        level.anchorX = RenderSystem.VIRTUAL_WIDTH;
+        elapsedTime = 0;
     }
 
     @Override

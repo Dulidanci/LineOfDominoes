@@ -2,6 +2,8 @@ package io.github.dulidanci.lineofdominoes.level;
 
 import com.badlogic.gdx.Gdx;
 import io.github.dulidanci.lineofdominoes.assets.AtlasIds;
+import io.github.dulidanci.lineofdominoes.domino.DominoSide;
+import io.github.dulidanci.lineofdominoes.game.LineOfDominoes;
 import io.github.dulidanci.lineofdominoes.level.movement.Direction;
 import io.github.dulidanci.lineofdominoes.domino.Domino;
 import io.github.dulidanci.lineofdominoes.render.DrawContext;
@@ -16,23 +18,27 @@ public class Level {
     private final ArrayList<Pair<Position, Direction>> path;
     private final ArrayList<Pair<Position, Direction>> emptySpaces;
     private final Map<Position, Domino> dominoes;
+    public float anchorX;
+    public float anchorY;
 
     private Level(Builder builder) {
         this.path = builder.path;
         this.emptySpaces = builder.emptySpaces;
         this.dominoes = builder.dominoes;
+        this.anchorX = 0.0f;
+        this.anchorY = 0.0f;
     }
 
     public void render(float delta, DrawContext drawContext) {
         emptySpaces.forEach(pair ->
             drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion("path_marker"),
-            pair.getFirst().x() * 24, (pair.getFirst().y() + 3) * 24,
+            anchorX + pair.getFirst().x() * 24, anchorY + (pair.getFirst().y() + 3) * 24,
             12,  12, 24, 24, 1, 1, pair.getSecond().getTurnDegrees()));
 
         for (Map.Entry<Position, Domino> entry : this.dominoes.entrySet()) {
             drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion(
                 "domino_" + entry.getValue().getFirstSide().ordinal() + "_" + entry.getValue().getDirection().name().toLowerCase()),
-                entry.getKey().x() * 24, (entry.getKey().y() + 3) * 24,
+                anchorX + entry.getKey().x() * 24, anchorY + (entry.getKey().y() + 3) * 24,
                 12, 12, 24, 24, 1, 1, 0);
         }
     }
@@ -63,6 +69,17 @@ public class Level {
                     checkedDomino.getSecondSide()));
     }
 
+    public boolean canPlaceAnywhere(Pair<DominoSide, DominoSide> pair) {
+        boolean result = false;
+        for (Pair<Position, Direction> emptySpace : emptySpaces) {
+            if (canPlace(new Domino(emptySpace.getFirst(), emptySpace.getSecond(), pair.getFirst(), pair.getSecond()))) {
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
+
     public void placeDomino(Domino domino) {
         if (!canPlace(domino, true)) {
             Gdx.app.error("Level", "Couldn't place domino due to previously mentioned reason. Dismissing domino");
@@ -74,6 +91,19 @@ public class Level {
         emptySpaces.remove(Pair.of(halves.getFirst().getPosition(), halves.getFirst().getDirection()));
         dominoes.put(halves.getSecond().getPosition(), halves.getSecond());
         emptySpaces.remove(Pair.of(halves.getSecond().getPosition(), halves.getSecond().getDirection()));
+    }
+
+    public int remainingSpaces() {
+        return emptySpaces.size();
+    }
+
+    public Domino getFinishDomino() {
+        Pair<Position, Direction> pair = path.get(path.size() - 1);
+        return new Domino(
+            pair.getFirst().add(pair.getSecond().getVector()).add(new Position(-LineOfDominoes.WIDTH, 0)),
+            pair.getSecond().getOpposite(),
+            dominoes.get(pair.getFirst().add(pair.getSecond().getVector())).getFirstSide(),
+            dominoes.get(pair.getFirst()).getFirstSide());
     }
 
     public static class Builder {

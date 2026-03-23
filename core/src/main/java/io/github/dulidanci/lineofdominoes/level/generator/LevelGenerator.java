@@ -31,7 +31,7 @@ public class LevelGenerator {
         this.dominoes.clear();
     }
 
-    public Level generateLevel(int startY) {
+    public Level generateLevel(int startY, Domino previousDomino) {
         this.reset();
         this.generatePath(startY);
 
@@ -42,7 +42,7 @@ public class LevelGenerator {
         });
         Level.Builder builder = new Level.Builder(path);
 
-        this.generateDominoes();
+        this.generateDominoes(previousDomino);
         builder.addDominoList(this.dominoes);
 
         return builder.build();
@@ -86,7 +86,7 @@ public class LevelGenerator {
         }
     }
 
-    private void generateDominoes() {
+    private void generateDominoes(Domino previousDomino) {
         for (int i = 0; i < emptySpaces.size(); i++) {
             dominoes.add(i, null);
         }
@@ -96,7 +96,11 @@ public class LevelGenerator {
             throw new ArrayIndexOutOfBoundsException("Tried to generate more dominoes than there are spaces for them!" + targetNumber + " > " + dominoes.size());
         }
 
-        this.createDominoIgnoringNeighbours(0);
+        if (previousDomino != null) {
+            dominoes.set(0, previousDomino);
+        } else {
+            this.createDominoIgnoringNeighbours(0);
+        }
         this.createDominoIgnoringNeighbours(emptySpaces.size() - 1);
 
         int generated = 2;

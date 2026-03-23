@@ -13,21 +13,25 @@ public class DominoWidget extends ClickableWidget {
     private final Pair<DominoSide, DominoSide> sides;
     private final int index;
     private Direction rotation;
-    private final float anchorX;
-    private final float anchorY;
 
     protected DominoWidget(Builder builder) {
         super(builder);
         this.sides = builder.sides;
         this.index = builder.index;
         this.rotation = Direction.UP;
-        this.anchorX = builder.x;
-        this.anchorY = builder.y;
     }
 
     @Override
     public void update(float delta) {
-
+        if (!held && x != originX && y != originY) {
+            Vector2 vector = new Vector2(originX - x, originY - y);
+            if (vector.len() < 1) {
+                x = originX;
+                y = originY;
+            } else {
+                this.move(vector.nor().scl(120.f * delta));
+            }
+        }
     }
 
     @Override
@@ -81,14 +85,6 @@ public class DominoWidget extends ClickableWidget {
 
     public int getIndex() {
         return index;
-    }
-
-    public float getAnchorX() {
-        return anchorX;
-    }
-
-    public float getAnchorY() {
-        return anchorY;
     }
 
     public float getCenterX() {

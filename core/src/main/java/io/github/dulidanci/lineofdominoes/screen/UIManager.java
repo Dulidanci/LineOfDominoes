@@ -82,8 +82,8 @@ public class UIManager {
             DominoWidget dominoWidget = dominoWidgets.get(focusedDomino.getAsInt());
 
             Direction rotation = dominoWidget.getRotation();
-            float centerX = dominoWidget.getAnchorX() + dominoWidget.getWidth() / 2;
-            float centerY = dominoWidget.getAnchorY() + dominoWidget.getHeight() / 2;
+            float centerX = dominoWidget.getOriginX() + dominoWidget.getWidth() / 2;
+            float centerY = dominoWidget.getOriginY() + dominoWidget.getHeight() / 2;
 
             drawContext.draw(drawContext.getAssetManager().get(AtlasIds.DOMINO.path(), AtlasIds.DOMINO.type()).findRegion("path_marker"),
                 centerX - 12 + rotation.getOpposite().getVector().x() * 12, centerY - 12 + rotation.getOpposite().getVector().y() * 12,
